@@ -31,6 +31,14 @@ class TreeXprmnt extends Sprite
 		addChild(bg);
 		tree = new Graph<Point>();
 		
+		var grid = new Array<Point>();
+		for (i in 0...1000)
+		{
+			grid.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
+		}
+		
+		var map = new voronoimap.Map({width:stg.stageWidth, height:stg.stageHeight});
+		
 		
 		addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);

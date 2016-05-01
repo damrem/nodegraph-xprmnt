@@ -17,6 +17,9 @@
 	<haxelib name="openfl" />
 	<haxelib name="actuate" />
 	<haxelib name="polygonal-ds" />
+	<haxelib name="poly2trihx" />
+	<haxelib name="voronoi-map-haxe" />
+	<haxelib name="janicek.core" />
 	
 	<!-- assets -->
 	<icon path="assets/openfl.svg" />
