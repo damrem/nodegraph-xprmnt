@@ -1,6 +1,7 @@
 package;
 import de.polygonal.ds.Graph;
 import de.polygonal.ds.GraphNode;
+import haxe.ds.Vector;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
@@ -37,12 +38,38 @@ class TreeXprmnt extends Sprite
 			grid.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
 		}
 		
-		var map = new voronoimap.Map({width:stg.stageWidth, height:stg.stageHeight});
+		var map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
+		map.go0PlacePoints(1000);
+		trace(map.points);
+		/*
+		for (pt in map.points)
+		{
+			//grid.push(new Point(pt.x, pt.y));
+			graphics.beginFill(0xff0000);
+			graphics.drawCircle(pt.x, pt.y, 1);
+		}
+		*/
+		map.go1ImprovePoints(1);
+		//map.go1ImprovePoints(1);
+		//map.go2BuildGraph();
+		
+		trace(map.points);
+		
+		for (pt in map.points)
+		{
+			grid.push(new Point(pt.x, pt.y));
+			graphics.beginFill(0x00ff00);
+			graphics.drawCircle(pt.x, pt.y, 1);
+		}
+		
+		
 		
 		
 		addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);
 	}
+	
+	
 	
 	private function update(e:Event):Void 
 	{
