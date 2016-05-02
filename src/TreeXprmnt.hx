@@ -33,13 +33,14 @@ class TreeXprmnt extends Sprite
 		tree = new Graph<Point>();
 		
 		var grid = new Array<Point>();
+		var map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
 		for (i in 0...1000)
 		{
-			grid.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
+			map.points.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
 		}
 		
-		var map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
-		map.go0PlacePoints(1000);
+		
+		//map.go0PlacePoints(100);
 		trace(map.points);
 		/*
 		for (pt in map.points)
@@ -49,14 +50,19 @@ class TreeXprmnt extends Sprite
 			graphics.drawCircle(pt.x, pt.y, 1);
 		}
 		*/
-		map.go1ImprovePoints(1);
-		//map.go1ImprovePoints(1);
-		//map.go2BuildGraph();
-		
-		trace(map.points);
-		
-		for (pt in map.points)
+		map.go1ImprovePoints(8);
+		for (i in 0...8)
 		{
+			map.improveCorners();
+		}
+		//map.go1ImprovePoints(1);
+		map.go2BuildGraph();
+		
+		trace(map.centers);
+		
+		for (c in map.centers)
+		{
+			var pt = c.point;
 			grid.push(new Point(pt.x, pt.y));
 			graphics.beginFill(0x00ff00);
 			graphics.drawCircle(pt.x, pt.y, 1);
