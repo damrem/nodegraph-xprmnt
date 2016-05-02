@@ -7,6 +7,7 @@ import openfl.events.Event;
 import openfl.events.MouseEvent;
 import openfl.geom.Point;
 import openfl.Lib;
+import voronoimap.graph.Center;
 
 /**
  * ...
@@ -14,8 +15,9 @@ import openfl.Lib;
  */
 class TreeXprmnt extends Sprite
 {
-	var tree:Graph<Point>;
+	var tree:Graph<Center>;
 	var scene:Sprite;
+	var map:voronoimap.Map;
 	public function new() 
 	{
 		super();
@@ -30,46 +32,30 @@ class TreeXprmnt extends Sprite
 		addChild(scene);
 		
 		addChild(bg);
-		tree = new Graph<Point>();
+		tree = new Graph<Center>();
 		
-		var grid = new Array<Point>();
-		var map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
+		map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
+		//map.go0PlacePoints(100);
 		for (i in 0...1000)
 		{
 			map.points.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
 		}
 		
 		
-		//map.go0PlacePoints(100);
-		trace(map.points);
-		/*
-		for (pt in map.points)
-		{
-			//grid.push(new Point(pt.x, pt.y));
-			graphics.beginFill(0xff0000);
-			graphics.drawCircle(pt.x, pt.y, 1);
-		}
-		*/
 		map.go1ImprovePoints(8);
 		for (i in 0...8)
 		{
 			map.improveCorners();
 		}
-		//map.go1ImprovePoints(1);
 		map.go2BuildGraph();
-		
-		trace(map.centers);
 		
 		for (c in map.centers)
 		{
 			var pt = c.point;
-			grid.push(new Point(pt.x, pt.y));
+			//grid.push(new Point(pt.x, pt.y));
 			graphics.beginFill(0x00ff00);
 			graphics.drawCircle(pt.x, pt.y, 1);
 		}
-		
-		
-		
 		
 		addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);
@@ -84,7 +70,7 @@ class TreeXprmnt extends Sprite
 		{
 			scene.graphics.beginFill(0xff0000);
 			scene.graphics.lineStyle(0, 0, 0);
-			scene.graphics.drawCircle(node.val.x, node.val.y, 5);
+			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
 			scene.graphics.endFill();
 			
 			for (target in tree.nodeIterator())
@@ -96,8 +82,8 @@ class TreeXprmnt extends Sprite
 				if (node.isMutuallyConnected(target))
 				{
 					scene.graphics.lineStyle(2, 0xff0000);
-					scene.graphics.moveTo(node.val.x, node.val.y);
-					scene.graphics.lineTo(target.val.x, target.val.y);
+					scene.graphics.moveTo(node.val.point.x, node.val.point.y);
+					scene.graphics.lineTo(target.val.point.x, target.val.point.y);
 				}
 			}
 		}
@@ -106,7 +92,13 @@ class TreeXprmnt extends Sprite
 	
 	private function onClick(e:MouseEvent):Void 
 	{
-		var node = new GraphNode<Point>(tree, new Point(e.localX, e.localY));
+		trace(getClosestCenter(new Point(e.localX, e.localY)).point);
+		
+		
+		/*
+		var closestNode = getClosestNodeFromPoint(new Point(e.localX, e.localY));
+		
+		var node = new GraphNode<Center>(tree, new Point(e.localX, e.localY));
 		tree.addNode(node);
 		
 		var closest = getClosestNode(node);
@@ -114,18 +106,23 @@ class TreeXprmnt extends Sprite
 		{
 			tree.addMutualArc(node, closest);
 		}
+		*/
 	}
 	
-	function getClosestNode(from:GraphNode<Point>):GraphNode<Point>
+	function getClosestCenter(from:Point):Center
 	{
-		/*
-		var closest:GraphNode<Point>=tree.getNodeList();
-		if (closest == null || tree.size() == 1)
+		var sortedCenters = map.centers.copy();
+		sortedCenters.sort(function(ca:Center, cb:Center):Int
 		{
-			return null;
-		}
-		*/
-		var closest:GraphNode<Point> = tree.getNodeList();
+			return Std.int(10*(Point.distance(from, new Point(ca.point.x, ca.point.y)) - Point.distance(from, new Point(cb.point.x, cb.point.y))));
+		});
+		return sortedCenters[0];
+	}
+	
+	/*
+	function getClosestNode(from:Point):GraphNode<Center>
+	{
+		var closest:GraphNode<Center> = tree.getNodeList();
 		for (node in tree.nodeIterator())
 		{
 			if (closest == from && node != from)
@@ -145,7 +142,7 @@ class TreeXprmnt extends Sprite
 		
 		return closest;
 	}
-	
+	*/
 	 
 	
 }
