@@ -16,6 +16,7 @@ import voronoimap.graph.Center;
 class TreeXprmnt extends Sprite
 {
 	var tree:Graph<Center>;
+	var terrain:Graph<Center>;
 	var scene:Sprite;
 	var map:voronoimap.Map;
 	public function new() 
@@ -33,6 +34,7 @@ class TreeXprmnt extends Sprite
 		
 		addChild(bg);
 		tree = new Graph<Center>();
+		terrain = new Graph<Center>();
 		
 		map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
 		//map.go0PlacePoints(100);
@@ -49,13 +51,60 @@ class TreeXprmnt extends Sprite
 		}
 		map.go2BuildGraph();
 		
+		graphics.lineStyle(0, 0, 0);
+		
+		
+		
 		for (c in map.centers)
 		{
-			var pt = c.point;
-			//grid.push(new Point(pt.x, pt.y));
-			graphics.beginFill(0x00ff00);
-			graphics.drawCircle(pt.x, pt.y, 1);
+			c.graphNode = new GraphNode<Center>(terrain, c);
+			terrain.addNode(c.graphNode);
 		}
+		
+		for (e in map.edges)
+		{
+			
+			var n0 = terrain.findNode(e.d0);
+			var n1= terrain.findNode(e.d1);
+			terrain.addMutualArc(n0, n1);
+		}
+		
+		graphics.lineStyle(1, 0xff0000, 0.1);
+		for (n0 in terrain.nodeIterator())
+		{
+			trace("n0", n0.val.point);
+			var p0 = n0.val.point;
+			
+			for (neighbor in n0.val.neighbors)
+			{
+				trace("neighbor", neighbor);
+				var p1 = neighbor.point;
+				graphics.moveTo(p0.x, p0.y);
+				graphics.lineTo(p1.x, p1.y);
+			}
+			
+		}
+		graphics.lineStyle(0, 0, 0);
+		
+		
+		graphics.beginFill(0x00ff00);
+		for (n0 in terrain.nodeIterator())
+		{	
+			var p0 = n0.val.point;
+			
+			
+			graphics.drawRect(p0.x-0.5, p0.y-0.5, 1, 1);
+			
+		}
+		graphics.endFill();
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);
