@@ -1,4 +1,6 @@
 package;
+import de.polygonal.ai.pathfinding.AStar;
+import de.polygonal.ds.DA;
 import de.polygonal.ds.Graph;
 import de.polygonal.ds.GraphNode;
 import haxe.ds.Vector;
@@ -19,6 +21,8 @@ class TreeXprmnt extends Sprite
 	var terrain:Graph<Center>;
 	var scene:Sprite;
 	var map:voronoimap.Map;
+	var astar:AStar;
+	
 	public function new() 
 	{
 		super();
@@ -27,6 +31,8 @@ class TreeXprmnt extends Sprite
 		bg.graphics.beginFill(0xffffff);
 		bg.alpha = 0.1;
 		bg.graphics.drawRect(0, 0, stg.stageWidth, stg.stageHeight);
+		
+		astar = new AStar(terrain);
 		
 		scene = new Sprite();
 		
@@ -57,8 +63,8 @@ class TreeXprmnt extends Sprite
 		
 		for (c in map.centers)
 		{
-			c.graphNode = new GraphNode<Center>(terrain, c);
-			terrain.addNode(c.graphNode);
+			c.node = new GraphNode<Center>(terrain, c);
+			terrain.addNode(c.node);
 		}
 		
 		for (e in map.edges)
@@ -141,21 +147,45 @@ class TreeXprmnt extends Sprite
 	
 	private function onClick(e:MouseEvent):Void 
 	{
-		trace(getClosestCenter(new Point(e.localX, e.localY)).point);
+		var closestCenter = getClosestCenter(new Point(e.localX, e.localY));
+		
+		var treeNode = new GraphNode<Center>(tree, closestCenter);
+		tree.addNode(treeNode);
+		
+		var terrainNode = terrain.findNode(closestCenter);
 		
 		
-		/*
-		var closestNode = getClosestNodeFromPoint(new Point(e.localX, e.localY));
-		
-		var node = new GraphNode<Center>(tree, new Point(e.localX, e.localY));
-		tree.addNode(node);
-		
-		var closest = getClosestNode(node);
-		if (closest != null)
+		//	TODO plug tree & terrain!!!
+		var closestTreeNode = getClosestTreeNode(treeNode);
+		trace(closestTreeNode );
+		if (closestTreeNode != null)
 		{
-			tree.addMutualArc(node, closest);
+			tree.addMutualArc(treeNode, closestTreeNode);
 		}
-		*/
+		
+		
+		
+		
+	}
+	
+	function getClosestTreeNode(from:GraphNode<Center>):GraphNode<Center>
+	{
+		var pathsByTreeNode:Map<DA<Center>, Center> = new Map<DA<Center>, Center>();
+		
+		var paths:Array<DA<Center>>=[];
+		for (treeCenter in tree)
+		{
+			var path=new DA<Center>();
+			astar.find(terrain, from.val, treeCenter, path);
+			paths.push(path);
+			pathsByTreeNode.set(path, treeCenter);
+		}
+		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
+		{
+			return da0.size() - da1.size();
+		});
+		//terrain.
+		return pathsByTreeNode.get(paths[0]).node;
 	}
 	
 	function getClosestCenter(from:Point):Center
