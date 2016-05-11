@@ -23,6 +23,8 @@ class TreeXprmnt extends Sprite
 	var map:voronoimap.Map;
 	var astar:AStar;
 	
+	var branch:Graph<Center>;
+	
 	public function new() 
 	{
 		super();
@@ -41,10 +43,11 @@ class TreeXprmnt extends Sprite
 		addChild(bg);
 		tree = new Graph<Center>();
 		terrain = new Graph<Center>();
+		branch = new Graph<Center>();
 		
 		map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
 		//map.go0PlacePoints(100);
-		for (i in 0...1000)
+		for (i in 0...100)
 		{
 			map.points.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
 		}
@@ -114,6 +117,49 @@ class TreeXprmnt extends Sprite
 		
 		addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);
+		addEventListener(MouseEvent.MOUSE_MOVE, onMove);
+	}
+	
+	private function onMove(e:MouseEvent):Void 
+	{
+		branch.clear(true);
+		
+		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.localX, e.localY));
+		var terrainNode = terrain.findNode(closestTerrainCenter);
+		
+		var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
+		if (shortestPathToTree == null)
+		{
+			var branchNode = new GraphNode<Center>(tree, closestTerrainCenter);
+			branch.addNode(branchNode);
+			return;
+		}
+		trace(shortestPathToTree.size());
+		for (center in shortestPathToTree)
+		{
+			if (branch.findNode(center) == null)
+			{
+				var branchNode = new GraphNode<Center>(branch, center);
+				branch.addNode(branchNode);
+			}
+		}
+		
+		for (i in 0...shortestPathToTree.size()-1)
+		{
+			var node0 = branch.findNode(shortestPathToTree.get(i));
+			var node1 = branch.findNode(shortestPathToTree.get(i + 1));
+			if (node0!=null&&node1!=null&&!node0.isMutuallyConnected(node1))
+			{
+				
+				branch.addMutualArc(node0, node1);
+			}
+		}
+		
+	}
+	
+	function createTerrain()
+	{
+		
 	}
 	
 	
@@ -143,60 +189,61 @@ class TreeXprmnt extends Sprite
 			}
 		}
 		
+		for (node in branch.nodeIterator())
+		{
+			scene.graphics.beginFill(0xffff00, 0.25);
+			scene.graphics.lineStyle(0, 0, 0);
+			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
+			scene.graphics.endFill();
+			
+			for (target in branch.nodeIterator())
+			{
+				if (node == target)
+				{
+					continue;
+				}
+				if (node.isMutuallyConnected(target))
+				{
+					scene.graphics.lineStyle(2, 0xffff00);
+					scene.graphics.moveTo(node.val.point.x, node.val.point.y);
+					scene.graphics.lineTo(target.val.point.x, target.val.point.y);
+				}
+			}
+		}
+		
 	}
 	
 	private function onClick(e:MouseEvent):Void 
 	{
 		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.localX, e.localY));
-		
-		//var treeNode = new GraphNode<Center>(tree, closestTerrainCenter);
-		//tree.addNode(treeNode);
-		
-		
 		var terrainNode = terrain.findNode(closestTerrainCenter);
 		
-		
-		//	TODO plug tree & terrain!!!
-		
-		
-		
-		
-		//var closestTreeNode = getClosestTreeNode(treeNode);
-		//trace(closestTreeNode );
-		//if (closestTreeNode != null)
-		//{
-			//tree.removeNode(closestTreeNode);
-			//tree.addMutualArc(treeNode, closestTreeNode);
-			var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
-			if (shortestPathToTree == null)
+		var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
+		if (shortestPathToTree == null)
+		{
+			var treeNode = new GraphNode<Center>(tree, closestTerrainCenter);
+			tree.addNode(treeNode);
+			return;
+		}
+		for (center in shortestPathToTree)
+		{
+			if (tree.findNode(center) == null)
 			{
-				var treeNode = new GraphNode<Center>(tree, closestTerrainCenter);
+				var treeNode = new GraphNode<Center>(tree, center);
 				tree.addNode(treeNode);
-				return;
 			}
-			for (center in shortestPathToTree)
+		}
+		
+		for (i in 0...shortestPathToTree.size()-1)
+		{
+			var node0 = tree.findNode(shortestPathToTree.get(i));
+			var node1 = tree.findNode(shortestPathToTree.get(i + 1));
+			if (!node0.isMutuallyConnected(node1))
 			{
-				if (tree.findNode(center) == null)
-				{
-					var treeNode = new GraphNode<Center>(tree, center);
-					tree.addNode(treeNode);
-				}
+				
+				tree.addMutualArc(node0, node1);
 			}
-			
-			for (i in 0...shortestPathToTree.size()-1)
-			{
-				var node0 = tree.findNode(shortestPathToTree.get(i));
-				var node1 = tree.findNode(shortestPathToTree.get(i + 1));
-				if (!node0.isMutuallyConnected(node1))
-				{
-					
-					tree.addMutualArc(node0, node1);
-				}
-			}
-		//}
-		
-		
-		
+		}
 		
 	}
 	
