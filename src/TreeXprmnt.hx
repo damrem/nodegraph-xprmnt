@@ -47,7 +47,7 @@ class TreeXprmnt extends Sprite
 		
 		map = new voronoimap.Map( { width:stg.stageWidth, height:stg.stageHeight } );
 		//map.go0PlacePoints(100);
-		for (i in 0...100)
+		for (i in 0...1000)
 		{
 			map.points.push(new Point(Math.random() * stg.stageWidth, Math.random() * stg.stageHeight));
 		}
@@ -261,23 +261,26 @@ class TreeXprmnt extends Sprite
 			paths.push(path);
 			//pathsByTreeNode.set(path, treeCenter);
 		}
-		trace(paths.map(function(da:DA<Center>)
-		{
-			return da.size();
-		}));
 		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
 		{
-			return da0.size() - da1.size();
+			//return da0.size() - da1.size();
+			return Std.int((getPathDistance(da0) - getPathDistance(da1))*1000);
 		});
-		trace(paths.map(function(da:DA<Center>)
-		{
-			return da.size();
-		}));
 		
 		//terrain.
 		if (paths.length == 0)	return null;
 		//if (paths.length == 1) return paths[0];
 		return paths[0];
+	}
+	
+	function getPathDistance(da:DA<Center>):Float
+	{
+		var distance:Float = 0;
+		for (i in 0 ... da.getArray().length-1)
+		{
+			distance+= da.get(i).distanceTo(da.get(i + 1));
+		}
+		return distance;
 	}
 	
 	function getClosestTreeNode(from:GraphNode<Center>):GraphNode<Center>
