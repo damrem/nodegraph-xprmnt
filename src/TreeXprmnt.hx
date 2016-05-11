@@ -123,7 +123,7 @@ class TreeXprmnt extends Sprite
 		scene.graphics.clear();
 		for (node in tree.nodeIterator())
 		{
-			scene.graphics.beginFill(0xff0000);
+			scene.graphics.beginFill(0xff0000, 0.25);
 			scene.graphics.lineStyle(0, 0, 0);
 			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
 			scene.graphics.endFill();
@@ -147,25 +147,81 @@ class TreeXprmnt extends Sprite
 	
 	private function onClick(e:MouseEvent):Void 
 	{
-		var closestCenter = getClosestCenter(new Point(e.localX, e.localY));
+		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.localX, e.localY));
 		
-		var treeNode = new GraphNode<Center>(tree, closestCenter);
-		tree.addNode(treeNode);
+		//var treeNode = new GraphNode<Center>(tree, closestTerrainCenter);
+		//tree.addNode(treeNode);
 		
-		var terrainNode = terrain.findNode(closestCenter);
+		
+		var terrainNode = terrain.findNode(closestTerrainCenter);
 		
 		
 		//	TODO plug tree & terrain!!!
-		var closestTreeNode = getClosestTreeNode(treeNode);
-		trace(closestTreeNode );
-		if (closestTreeNode != null)
+		
+		
+		
+		
+		//var closestTreeNode = getClosestTreeNode(treeNode);
+		//trace(closestTreeNode );
+		//if (closestTreeNode != null)
+		//{
+			//tree.removeNode(closestTreeNode);
+			//tree.addMutualArc(treeNode, closestTreeNode);
+			var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
+			if (shortestPathToTree == null)
+			{
+				var treeNode = new GraphNode<Center>(tree, closestTerrainCenter);
+				tree.addNode(treeNode);
+				return;
+			}
+			for (center in shortestPathToTree)
+			{
+				if (tree.findNode(center) == null)
+				{
+					var treeNode = new GraphNode<Center>(tree, center);
+					tree.addNode(treeNode);
+				}
+			}
+			
+			for (i in 0...shortestPathToTree.size()-1)
+			{
+				var node0 = tree.findNode(shortestPathToTree.get(i));
+				var node1 = tree.findNode(shortestPathToTree.get(i + 1));
+				if (!node0.isMutuallyConnected(node1))
+				{
+					
+					tree.addMutualArc(node0, node1);
+				}
+			}
+		//}
+		
+		
+		
+		
+	}
+	
+	
+	
+	function getShortestPathToTree(terrainCenter:Center):DA<Center>
+	{
+		//var pathsByTreeNode:Map<DA<Center>, Center> = new Map<DA<Center>, Center>();
+		var paths:Array<DA<Center>> = [];
+		
+		for (treeCenter in tree)
 		{
-			tree.addMutualArc(treeNode, closestTreeNode);
+			var path = new DA<Center>();
+			astar.find(terrain, terrainCenter, treeCenter, path);
+			paths.push(path);
+			//pathsByTreeNode.set(path, treeCenter);
 		}
-		
-		
-		
-		
+		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
+		{
+			return da0.size() - da1.size();
+		});
+		//terrain.
+		if (paths.length == 0)	return null;
+		if (paths.length == 1) return paths[0];
+		return paths[1];
 	}
 	
 	function getClosestTreeNode(from:GraphNode<Center>):GraphNode<Center>
@@ -182,13 +238,13 @@ class TreeXprmnt extends Sprite
 		}
 		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
 		{
-			return da0.size() - da1.size();
+			return da1.size() - da0.size();
 		});
 		//terrain.
 		return pathsByTreeNode.get(paths[0]).node;
 	}
 	
-	function getClosestCenter(from:Point):Center
+	function getClosestTerrainCenter(from:Point):Center
 	{
 		var sortedCenters = map.centers.copy();
 		sortedCenters.sort(function(ca:Center, cb:Center):Int
