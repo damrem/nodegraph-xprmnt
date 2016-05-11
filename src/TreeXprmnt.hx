@@ -261,14 +261,23 @@ class TreeXprmnt extends Sprite
 			paths.push(path);
 			//pathsByTreeNode.set(path, treeCenter);
 		}
+		trace(paths.map(function(da:DA<Center>)
+		{
+			return da.size();
+		}));
 		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
 		{
 			return da0.size() - da1.size();
 		});
+		trace(paths.map(function(da:DA<Center>)
+		{
+			return da.size();
+		}));
+		
 		//terrain.
 		if (paths.length == 0)	return null;
-		if (paths.length == 1) return paths[0];
-		return paths[1];
+		//if (paths.length == 1) return paths[0];
+		return paths[0];
 	}
 	
 	function getClosestTreeNode(from:GraphNode<Center>):GraphNode<Center>
