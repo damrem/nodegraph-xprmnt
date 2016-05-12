@@ -81,12 +81,12 @@ class TreeXprmnt extends Sprite
 		graphics.lineStyle(1, 0xff0000, 0.1);
 		for (n0 in terrain.nodeIterator())
 		{
-			trace("n0", n0.val.point);
+			//trace("n0", n0.val.point);
 			var p0 = n0.val.point;
 			
 			for (neighbor in n0.val.neighbors)
 			{
-				trace("neighbor", neighbor);
+				//trace("neighbor", neighbor);
 				var p1 = neighbor.point;
 				graphics.moveTo(p0.x, p0.y);
 				graphics.lineTo(p1.x, p1.y);
@@ -95,7 +95,7 @@ class TreeXprmnt extends Sprite
 		}
 		graphics.lineStyle(0, 0, 0);
 		
-		
+		/*
 		graphics.beginFill(0x00ff00);
 		for (n0 in terrain.nodeIterator())
 		{	
@@ -106,7 +106,7 @@ class TreeXprmnt extends Sprite
 			
 		}
 		graphics.endFill();
-		
+		*/
 		
 		
 		
@@ -122,18 +122,28 @@ class TreeXprmnt extends Sprite
 	
 	private function onMove(e:MouseEvent):Void 
 	{
+		trace("move");
+		trace(Lib.getTimer());
+		
 		branch.clear(true);
+		trace(Lib.getTimer());
 		
 		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.localX, e.localY));
+		trace(Lib.getTimer());
+		
 		var terrainNode = terrain.findNode(closestTerrainCenter);
+		trace(Lib.getTimer());
 		
 		var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
+		trace(Lib.getTimer());
+		
 		if (shortestPathToTree == null)
 		{
 			var branchNode = new GraphNode<Center>(tree, closestTerrainCenter);
 			branch.addNode(branchNode);
 			return;
 		}
+		trace(Lib.getTimer());
 		trace(shortestPathToTree.size());
 		for (center in shortestPathToTree)
 		{
@@ -143,6 +153,7 @@ class TreeXprmnt extends Sprite
 				branch.addNode(branchNode);
 			}
 		}
+		trace(Lib.getTimer());
 		
 		for (i in 0...shortestPathToTree.size()-1)
 		{
@@ -154,6 +165,7 @@ class TreeXprmnt extends Sprite
 				branch.addMutualArc(node0, node1, node0.val.distanceTo(node1.val));
 			}
 		}
+		trace(Lib.getTimer());
 		
 	}
 	
@@ -290,6 +302,17 @@ class TreeXprmnt extends Sprite
 	
 	function getClosestTerrainCenter(from:Point):Center
 	{
+		var closestCenter = terrain.getNodeList().val;
+		for (center in terrain.iterator())
+		{
+			if (Point.distance(from, center.point) < Point.distance(from, closestCenter.point))
+			{
+				closestCenter = center;
+			}
+		}
+		return closestCenter;
+		
+		
 		var sortedCenters = map.centers.copy();
 		sortedCenters.sort(function(ca:Center, cb:Center):Int
 		{
