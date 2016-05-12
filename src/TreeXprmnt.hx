@@ -75,7 +75,7 @@ class TreeXprmnt extends Sprite
 			
 			var n0 = terrain.findNode(e.d0);
 			var n1= terrain.findNode(e.d1);
-			terrain.addMutualArc(n0, n1);
+			terrain.addMutualArc(n0, n1, e.d0.distanceTo(e.d1));
 		}
 		
 		graphics.lineStyle(1, 0xff0000, 0.1);
@@ -151,7 +151,7 @@ class TreeXprmnt extends Sprite
 			if (node0!=null&&node1!=null&&!node0.isMutuallyConnected(node1))
 			{
 				
-				branch.addMutualArc(node0, node1);
+				branch.addMutualArc(node0, node1, node0.val.distanceTo(node1.val));
 			}
 		}
 		
@@ -163,53 +163,39 @@ class TreeXprmnt extends Sprite
 	}
 	
 	
+	function drawGraph(graph:Graph<Center>, color:Int)
+	{
+		for (node in graph.nodeIterator())
+		{
+			scene.graphics.beginFill(color, 0.25);
+			scene.graphics.lineStyle(0, 0, 0);
+			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
+			scene.graphics.endFill();
+			
+			for (target in graph.nodeIterator())
+			{
+				if (node == target)
+				{
+					continue;
+				}
+				if (node.isMutuallyConnected(target))
+				{
+					scene.graphics.lineStyle(2, color);
+					scene.graphics.moveTo(node.val.point.x, node.val.point.y);
+					scene.graphics.lineTo(target.val.point.x, target.val.point.y);
+				}
+			}
+		}
+	}
+	
+	
 	
 	private function update(e:Event):Void 
 	{
 		scene.graphics.clear();
-		for (node in tree.nodeIterator())
-		{
-			scene.graphics.beginFill(0xff0000, 0.25);
-			scene.graphics.lineStyle(0, 0, 0);
-			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
-			scene.graphics.endFill();
-			
-			for (target in tree.nodeIterator())
-			{
-				if (node == target)
-				{
-					continue;
-				}
-				if (node.isMutuallyConnected(target))
-				{
-					scene.graphics.lineStyle(2, 0xff0000);
-					scene.graphics.moveTo(node.val.point.x, node.val.point.y);
-					scene.graphics.lineTo(target.val.point.x, target.val.point.y);
-				}
-			}
-		}
 		
-		for (node in branch.nodeIterator())
-		{
-			scene.graphics.beginFill(0xffff00, 0.25);
-			scene.graphics.lineStyle(0, 0, 0);
-			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
-			scene.graphics.endFill();
-			
-			for (target in branch.nodeIterator())
-			{
-				if (node == target)
-				{
-					continue;
-				}
-				if (node.isMutuallyConnected(target))
-				{
-					scene.graphics.lineStyle(2, 0xffff00);
-					scene.graphics.moveTo(node.val.point.x, node.val.point.y);
-					scene.graphics.lineTo(target.val.point.x, target.val.point.y);
-				}
-			}
-		}
+		drawGraph(tree, 0xff0000);
+		drawGraph(branch, 0xffff00);
 		
 	}
 	
@@ -241,7 +227,7 @@ class TreeXprmnt extends Sprite
 			if (!node0.isMutuallyConnected(node1))
 			{
 				
-				tree.addMutualArc(node0, node1);
+				tree.addMutualArc(node0, node1, node0.val.distanceTo(node1.val));
 			}
 		}
 		
@@ -263,7 +249,6 @@ class TreeXprmnt extends Sprite
 		}
 		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
 		{
-			//return da0.size() - da1.size();
 			return Std.int((getPathDistance(da0) - getPathDistance(da1))*1000);
 		});
 		
