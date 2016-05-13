@@ -24,6 +24,8 @@ class TreeXprmnt extends Sprite
 	var astar:AStar;
 	
 	var branch:Graph<Center>;
+	var selectedCenter:Center;
+	var interactiveLayer:Sprite;
 	
 	public function new() 
 	{
@@ -37,10 +39,12 @@ class TreeXprmnt extends Sprite
 		astar = new AStar(terrain);
 		
 		scene = new Sprite();
+		interactiveLayer = new Sprite();
 		
 		addChild(scene);
-		
 		addChild(bg);
+		addChild(interactiveLayer);
+		
 		tree = new Graph<Center>();
 		terrain = new Graph<Center>();
 		branch = new Graph<Center>();
@@ -115,27 +119,46 @@ class TreeXprmnt extends Sprite
 		
 		
 		
-		addEventListener(MouseEvent.CLICK, onClick);
+		//addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);
-		addEventListener(MouseEvent.MOUSE_MOVE, onMove);
+		//addEventListener(MouseEvent.MOUSE_MOVE, onMove);
+		addEventListener(MouseEvent.CLICK, toggleSelection);
+		addBranch();
+	}
+	
+	private function toggleSelection(e:MouseEvent):Void 
+	{
+		//trace(e.target, e.currentTarget);
+		var centeredSprite:CenteredSprite;// = e.target;
+		if (Type.getClass(e.target) == CenteredSprite)
+		{
+			selectedCenter = cast(e.target, CenteredSprite).center;
+			//var center = centeredSprite.center;			
+			var node = tree.findNode(selectedCenter);
+		}
+		else
+		{
+			selectedCenter = null;
+		}
+		
 	}
 	
 	private function onMove(e:MouseEvent):Void 
 	{
-		trace("move");
-		trace(Lib.getTimer());
+		trace("onMove", e.localX, e.localY);
+		//trace(Lib.getTimer());
 		
 		branch.clear(true);
-		trace(Lib.getTimer());
+		//trace(Lib.getTimer());
 		
-		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.localX, e.localY));
-		trace(Lib.getTimer());
+		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.stageX, e.stageY));
+		//trace(Lib.getTimer());
 		
 		var terrainNode = terrain.findNode(closestTerrainCenter);
-		trace(Lib.getTimer());
+		//trace(Lib.getTimer());
 		
 		var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
-		trace(Lib.getTimer());
+		//trace(Lib.getTimer());
 		
 		if (shortestPathToTree == null)
 		{
@@ -143,8 +166,8 @@ class TreeXprmnt extends Sprite
 			branch.addNode(branchNode);
 			return;
 		}
-		trace(Lib.getTimer());
-		trace(shortestPathToTree.size());
+		//trace(Lib.getTimer());
+		//trace(shortestPathToTree.size());
 		for (center in shortestPathToTree)
 		{
 			if (branch.findNode(center) == null)
@@ -153,7 +176,7 @@ class TreeXprmnt extends Sprite
 				branch.addNode(branchNode);
 			}
 		}
-		trace(Lib.getTimer());
+		//trace(Lib.getTimer());
 		
 		for (i in 0...shortestPathToTree.size()-1)
 		{
@@ -179,10 +202,15 @@ class TreeXprmnt extends Sprite
 	{
 		for (node in graph.nodeIterator())
 		{
-			scene.graphics.beginFill(color, 0.25);
-			scene.graphics.lineStyle(0, 0, 0);
-			scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
-			scene.graphics.endFill();
+			node.val.sprite.x = node.val.point.x;
+			node.val.sprite.y = node.val.point.y;
+			node.val.sprite.alpha = selectedCenter == node.val?1:0.25;
+			interactiveLayer.addChild(node.val.sprite);
+			//trace(node.val.zone.width, node.val.zone.height);
+			//scene.graphics.beginFill(color, 0.25);
+			//scene.graphics.lineStyle(0, 0, 0);
+			//scene.graphics.drawCircle(node.val.point.x, node.val.point.y, 5);
+			//scene.graphics.endFill();
 			
 			for (target in graph.nodeIterator())
 			{
@@ -205,7 +233,7 @@ class TreeXprmnt extends Sprite
 	private function update(e:Event):Void 
 	{
 		scene.graphics.clear();
-		
+		interactiveLayer.removeChildren();
 		drawGraph(tree, 0xff0000);
 		drawGraph(branch, 0xffff00);
 		
@@ -213,16 +241,32 @@ class TreeXprmnt extends Sprite
 	
 	private function onClick(e:MouseEvent):Void 
 	{
-		var closestTerrainCenter = getClosestTerrainCenter(new Point(e.localX, e.localY));
+		/*if (selectedTreeNode == null)
+		{
+			selectTreeNode(getClosestTreeNode());
+		}
+		else
+		{*/
+			addBranch(e);
+		//}
+	}
+	
+	function addBranch(e:MouseEvent=null)
+	{
+		var point = e == null ? new Point(Lib.current.stage.stageWidth / 2, Lib.current.stage.stageHeight / 2) : new Point(e.stageX, e.stageY);
+		var closestTerrainCenter = getClosestTerrainCenter(point);
 		var terrainNode = terrain.findNode(closestTerrainCenter);
 		
 		var shortestPathToTree = getShortestPathToTree(closestTerrainCenter);
+		
+		//	start exception
 		if (shortestPathToTree == null)
 		{
 			var treeNode = new GraphNode<Center>(tree, closestTerrainCenter);
 			tree.addNode(treeNode);
 			return;
 		}
+		
 		for (center in shortestPathToTree)
 		{
 			if (tree.findNode(center) == null)
