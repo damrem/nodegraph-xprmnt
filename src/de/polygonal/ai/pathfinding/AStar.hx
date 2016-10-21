@@ -29,7 +29,7 @@
  */
 package de.polygonal.ai.pathfinding;
 
-import de.polygonal.ds.DA;
+import de.polygonal.ds.ArrayList;
 import de.polygonal.ds.Graph;
 import de.polygonal.ds.Heap;
 import voronoimap.graph.Center;
@@ -58,7 +58,7 @@ class AStar
 	 * Finds the shortest path from source to target and stores the result in path.
 	 * @return true if a path from source to target exists.
 	 */
-	public function find(graph:Graph<Center>, source:Center, target:Center, path:DA<Center>):Bool
+	public function find(graph:Graph<Center>, source:Center, target:Center, path:ArrayList<Center>):Bool
 	{
 		var pathExists = false;
 		
@@ -83,7 +83,7 @@ class AStar
 		q.add(source);
 		
 		//while there are waypoints in the queue...
-		while (q.size() > 0)
+		while (q.size > 0)
 		{
 			//grab the next waypoint off the queue and process it
 			var waypoint1 = q.pop();

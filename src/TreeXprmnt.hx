@@ -1,9 +1,8 @@
 package;
 import de.polygonal.ai.pathfinding.AStar;
-import de.polygonal.ds.DA;
+import de.polygonal.ds.ArrayList;
 import de.polygonal.ds.Graph;
 import de.polygonal.ds.GraphNode;
-import haxe.ds.Vector;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
@@ -121,7 +120,7 @@ class TreeXprmnt extends Sprite
 		
 		//addEventListener(MouseEvent.CLICK, onClick);
 		addEventListener(Event.ENTER_FRAME, update);
-		//addEventListener(MouseEvent.MOUSE_MOVE, onMove);
+		addEventListener(MouseEvent.MOUSE_MOVE, onMove);
 		addEventListener(MouseEvent.CLICK, toggleSelection);
 		addBranch();
 	}
@@ -178,7 +177,7 @@ class TreeXprmnt extends Sprite
 		}
 		//trace(Lib.getTimer());
 		
-		for (i in 0...shortestPathToTree.size()-1)
+		for (i in 0...shortestPathToTree.size-1)
 		{
 			var node0 = branch.findNode(shortestPathToTree.get(i));
 			var node1 = branch.findNode(shortestPathToTree.get(i + 1));
@@ -276,7 +275,7 @@ class TreeXprmnt extends Sprite
 			}
 		}
 		
-		for (i in 0...shortestPathToTree.size()-1)
+		for (i in 0...shortestPathToTree.size-1)
 		{
 			var node0 = tree.findNode(shortestPathToTree.get(i));
 			var node1 = tree.findNode(shortestPathToTree.get(i + 1));
@@ -291,19 +290,19 @@ class TreeXprmnt extends Sprite
 	
 	
 	
-	function getShortestPathToTree(terrainCenter:Center):DA<Center>
+	function getShortestPathToTree(terrainCenter:Center):ArrayList<Center>
 	{
-		//var pathsByTreeNode:Map<DA<Center>, Center> = new Map<DA<Center>, Center>();
-		var paths:Array<DA<Center>> = [];
+		//var pathsByTreeNode:Map<ArrayList<Center>, Center> = new Map<ArrayList<Center>, Center>();
+		var paths:Array<ArrayList<Center>> = [];
 		
 		for (treeCenter in tree)
 		{
-			var path = new DA<Center>();
+			var path = new ArrayList<Center>();
 			astar.find(terrain, terrainCenter, treeCenter, path);
 			paths.push(path);
 			//pathsByTreeNode.set(path, treeCenter);
 		}
-		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
+		paths.sort(function(da0:ArrayList<Center>, da1:ArrayList<Center>):Int
 		{
 			return Std.int((getPathDistance(da0) - getPathDistance(da1))*1000);
 		});
@@ -314,10 +313,10 @@ class TreeXprmnt extends Sprite
 		return paths[0];
 	}
 	
-	function getPathDistance(da:DA<Center>):Float
+	function getPathDistance(da:ArrayList<Center>):Float
 	{
 		var distance:Float = 0;
-		for (i in 0 ... da.getArray().length-1)
+		for (i in 0 ... da.size-1)
 		{
 			distance+= da.get(i).distanceTo(da.get(i + 1));
 		}
@@ -326,19 +325,19 @@ class TreeXprmnt extends Sprite
 	
 	function getClosestTreeNode(from:GraphNode<Center>):GraphNode<Center>
 	{
-		var pathsByTreeNode:Map<DA<Center>, Center> = new Map<DA<Center>, Center>();
+		var pathsByTreeNode:Map<ArrayList<Center>, Center> = new Map<ArrayList<Center>, Center>();
 		
-		var paths:Array<DA<Center>>=[];
+		var paths:Array<ArrayList<Center>>=[];
 		for (treeCenter in tree)
 		{
-			var path=new DA<Center>();
+			var path=new ArrayList<Center>();
 			astar.find(terrain, from.val, treeCenter, path);
 			paths.push(path);
 			pathsByTreeNode.set(path, treeCenter);
 		}
-		paths.sort(function(da0:DA<Center>, da1:DA<Center>):Int
+		paths.sort(function(da0:ArrayList<Center>, da1:ArrayList<Center>):Int
 		{
-			return da1.size() - da0.size();
+			return da1.size - da0.size;
 		});
 		//terrain.
 		return pathsByTreeNode.get(paths[0]).node;
